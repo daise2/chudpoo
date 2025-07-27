@@ -40,31 +40,6 @@
             font-family: 'Do Hyeon', sans-serif;
             font-size: 2.5em;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .status-bar {
-            background: #f8f9fa;
-            padding: 10px 20px;
-            border-bottom: 1px solid #e1e8ed;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9em;
-            flex-wrap: wrap;
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #28a745;
         }
 
         .user-selector {
@@ -72,7 +47,6 @@
             justify-content: center;
             gap: 20px;
             margin: 30px 0;
-            flex-wrap: nowrap;
         }
 
         .user-btn {
@@ -82,17 +56,14 @@
             font-size: 1.2em;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
             background: #f5f7fa;
             color: #1877f2;
             font-family: 'Jua', sans-serif;
         }
 
         .user-btn.active {
-            background: linear-gradient(135deg, #1877f2, #42a5f5);
+            background: #1877f2;
             color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(24, 119, 242, 0.4);
         }
 
         .week-tabs {
@@ -100,7 +71,6 @@
             justify-content: center;
             gap: 10px;
             margin: 20px 0;
-            flex-wrap: wrap;
         }
 
         .week-tab {
@@ -109,16 +79,13 @@
             border-radius: 20px;
             background: white;
             cursor: pointer;
-            transition: all 0.3s ease;
             font-weight: bold;
-            font-family: 'Jua', sans-serif;
             color: #1877f2;
         }
 
         .week-tab.active {
             background: #1877f2;
             color: white;
-            border-color: #1877f2;
         }
 
         .diet-schedule {
@@ -127,16 +94,10 @@
 
         .week-section {
             display: none;
-            animation: fadeIn 0.5s ease;
         }
 
         .week-section.active {
             display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .day-card {
@@ -145,18 +106,11 @@
             padding: 20px;
             margin-bottom: 20px;
             border-left: 5px solid #1877f2;
-            transition: all 0.3s ease;
-        }
-
-        .day-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 5px 15px rgba(24, 119, 242, 0.1);
         }
 
         .day-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             margin-bottom: 15px;
         }
 
@@ -164,7 +118,6 @@
             font-size: 1.3em;
             font-weight: bold;
             color: #1565c0;
-            font-family: 'Do Hyeon', sans-serif;
         }
 
         .day-progress {
@@ -172,19 +125,19 @@
             border-radius: 10px;
             height: 8px;
             width: 100px;
-            overflow: hidden;
         }
 
         .day-progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #1877f2, #42a5f5);
-            transition: width 0.3s ease;
+            background: #1877f2;
+            width: 0%;
             border-radius: 10px;
+            transition: width 0.3s;
         }
 
         .meals {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 15px;
         }
 
@@ -193,7 +146,6 @@
             padding: 15px;
             border-radius: 10px;
             border: 2px solid #e3f2fd;
-            transition: border-color 0.3s ease;
         }
 
         .meal.completed {
@@ -201,22 +153,14 @@
             background: #f3f8ff;
         }
 
-        .meal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
         .meal-title {
             font-weight: bold;
             color: #1565c0;
-            font-family: 'Do Hyeon', sans-serif;
+            margin-bottom: 10px;
         }
 
         .meal-food {
             color: #64b5f6;
-            font-size: 0.9em;
             margin-bottom: 10px;
         }
 
@@ -224,7 +168,6 @@
             display: flex;
             gap: 10px;
             align-items: center;
-            flex-wrap: wrap;
         }
 
         .check-btn {
@@ -234,14 +177,6 @@
             padding: 8px 15px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-            font-family: 'Jua', sans-serif;
-        }
-
-        .check-btn:hover {
-            background: #1565c0;
-            transform: scale(1.05);
         }
 
         .check-btn.checked {
@@ -250,52 +185,9 @@
 
         .substitute-input {
             flex: 1;
-            min-width: 200px;
             padding: 8px 12px;
             border: 1px solid #e1e8ed;
             border-radius: 15px;
-            font-size: 0.9em;
-            transition: border-color 0.3s ease;
-            font-family: 'Jua', sans-serif;
-        }
-
-        .substitute-input:focus {
-            outline: none;
-            border-color: #1877f2;
-        }
-
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 30px 0;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 25px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Jua', sans-serif;
-        }
-
-        .export-btn {
-            background: linear-gradient(135deg, #1877f2, #42a5f5);
-            color: white;
-        }
-
-        .reset-btn {
-            background: linear-gradient(135deg, #ff9800, #ffa726);
-            color: white;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(24, 119, 242, 0.3);
         }
 
         .ranking {
@@ -306,131 +198,44 @@
         }
 
         .ranking h2 {
-            font-family: 'Do Hyeon', sans-serif;
             font-size: 2em;
             margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .ranking-list {
             display: flex;
             justify-content: center;
             gap: 30px;
-            flex-wrap: wrap;
         }
 
         .ranking-item {
             background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
             padding: 25px;
             border-radius: 20px;
             min-width: 200px;
-            transition: transform 0.3s ease;
-        }
-
-        .ranking-item:hover {
-            transform: translateY(-5px);
-        }
-
-        .ranking-item.first {
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            color: #333;
-            transform: scale(1.1);
-        }
-
-        .ranking-item.second {
-            background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
-            color: #333;
-        }
-
-        .ranking-item.third {
-            background: linear-gradient(135deg, #CD7F32, #B8860B);
-            color: white;
-        }
-
-        .rank-position {
-            font-size: 2em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-family: 'Do Hyeon', sans-serif;
         }
 
         .rank-name {
             font-size: 1.2em;
             margin-bottom: 10px;
-            font-family: 'Jua', sans-serif;
         }
 
         .rank-percentage {
             font-size: 1.5em;
             font-weight: bold;
-            font-family: 'Do Hyeon', sans-serif;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            z-index: 1000;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-            font-family: 'Jua', sans-serif;
-            max-width: 300px;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.success {
-            background: #1877f2;
-        }
-
-        .notification.error {
-            background: #f44336;
-        }
-
-        .notification.warning {
-            background: #ff9800;
         }
 
         @media (max-width: 768px) {
             .meals {
                 grid-template-columns: 1fr;
             }
-            
-            .user-selector {
-                flex-wrap: wrap;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            
             .ranking-list {
                 flex-direction: column;
                 align-items: center;
             }
-
             .meal-controls {
                 flex-direction: column;
-                align-items: stretch;
-            }
-
-            .substitute-input {
-                min-width: unset;
-                margin: 5px 0;
-            }
-
-            .status-bar {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
+                gap: 5px;
             }
         }
     </style>
@@ -440,14 +245,6 @@
         <div class="header">
             <h1>스위치온 다이어트 식단 관리</h1>
             <p>츄디푸 HMH GMG</p>
-        </div>
-
-        <div class="status-bar">
-            <div class="connection-status">
-                <span class="status-dot"></span>
-                <span>로컬 저장 모드</span>
-            </div>
-            <div id="lastSaved">마지막 저장: 없음</div>
         </div>
 
         <div class="user-selector">
@@ -470,26 +267,18 @@
             <div class="week-section" data-week="4"></div>
         </div>
 
-        <div class="action-buttons">
-            <button class="action-btn export-btn" onclick="exportToCSV()">CSV 다운로드</button>
-            <button class="action-btn reset-btn" onclick="resetAllData()">데이터 초기화</button>
-        </div>
-
         <div class="ranking">
             <h2>달성률 랭킹</h2>
             <div class="ranking-list">
                 <div class="ranking-item">
-                    <div class="rank-position">1</div>
                     <div class="rank-name">츄</div>
                     <div class="rank-percentage">0%</div>
                 </div>
                 <div class="ranking-item">
-                    <div class="rank-position">2</div>
                     <div class="rank-name">디</div>
                     <div class="rank-percentage">0%</div>
                 </div>
                 <div class="ranking-item">
-                    <div class="rank-position">3</div>
                     <div class="rank-name">푸</div>
                     <div class="rank-percentage">0%</div>
                 </div>
@@ -497,18 +286,10 @@
         </div>
     </div>
 
-    <div class="notification" id="notification"></div>
-
     <script>
-        // 전역 변수
-        let userData = {
-            '츄': {},
-            '디': {},
-            '푸': {}
-        };
+        let userData = { '츄': {}, '디': {}, '푸': {} };
         let currentUser = '츄';
 
-        // 식단표 데이터
         const dietSchedule = {
             1: {
                 1: { 아침: '쉐이크', 점심: '쉐이크', 저녁: '쉐이크' },
@@ -547,144 +328,62 @@
             }
         };
 
-        // 사용자 선택
         document.querySelectorAll('.user-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentUser = this.dataset.user;
-                saveUserPreference();
                 loadUserData();
-                showNotification(`${currentUser}님으로 전환되었습니다.`);
             });
         });
 
-        // 주차 탭 전환
         document.querySelectorAll('.week-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 document.querySelectorAll('.week-tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.week-section').forEach(s => s.classList.remove('active'));
-                
                 this.classList.add('active');
                 document.querySelector(`.week-section[data-week="${this.dataset.week}"]`).classList.add('active');
             });
         });
 
-        // 식단 체크 이벤트
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('check-btn')) {
-                handleMealCheck(e);
+                const meal = e.target.closest('.meal');
+                const dayCard = e.target.closest('.day-card');
+                const mealType = meal.dataset.meal;
+                const day = dayCard.dataset.day;
+                const week = document.querySelector('.week-section.active').dataset.week;
+                const key = `week${week}_day${day}_${mealType}`;
+                
+                if (!userData[currentUser][key]) {
+                    userData[currentUser][key] = { completed: false, substitute: '' };
+                }
+                
+                userData[currentUser][key].completed = !userData[currentUser][key].completed;
+                
+                if (userData[currentUser][key].completed) {
+                    meal.classList.add('completed');
+                    e.target.textContent = '완료됨';
+                    e.target.classList.add('checked');
+                } else {
+                    meal.classList.remove('completed');
+                    e.target.textContent = '완료';
+                    e.target.classList.remove('checked');
+                }
+                
+                updateDayProgress(dayCard);
+                updateRanking();
+                localStorage.setItem('switchOnDietData', JSON.stringify(userData));
             }
         });
 
-        // 대체식 입력 처리
-        document.addEventListener('input', function(e) {
-            if (e.target.classList.contains('substitute-input')) {
-                handleSubstituteInput(e);
-            }
-        });
-
-        // 식단 체크 처리
-        function handleMealCheck(e) {
-            const meal = e.target.closest('.meal');
-            const dayCard = e.target.closest('.day-card');
-            const mealType = meal.dataset.meal;
-            const day = dayCard.dataset.day;
-            const week = document.querySelector('.week-section.active').dataset.week;
-            
-            const key = `week${week}_day${day}_${mealType}`;
-            
-            if (!userData[currentUser][key]) {
-                userData[currentUser][key] = { completed: false, substitute: '' };
-            }
-            
-            userData[currentUser][key].completed = !userData[currentUser][key].completed;
-            
-            if (userData[currentUser][key].completed) {
-                meal.classList.add('completed');
-                e.target.textContent = '완료됨';
-                e.target.classList.add('checked');
-            } else {
-                meal.classList.remove('completed');
-                e.target.textContent = '완료';
-                e.target.classList.remove('checked');
-            }
-            
-            updateDayProgress(dayCard);
-            updateRanking();
-            autoSave();
-        }
-
-        // 대체식 입력 처리
-        function handleSubstituteInput(e) {
-            const meal = e.target.closest('.meal');
-            const dayCard = e.target.closest('.day-card');
-            const mealType = meal.dataset.meal;
-            const day = dayCard.dataset.day;
-            const week = document.querySelector('.week-section.active').dataset.week;
-            
-            const key = `week${week}_day${day}_${mealType}`;
-            
-            if (!userData[currentUser][key]) {
-                userData[currentUser][key] = { completed: false, substitute: '' };
-            }
-            
-            userData[currentUser][key].substitute = e.target.value;
-            
-            clearTimeout(window.autoSaveTimeout);
-            window.autoSaveTimeout = setTimeout(autoSave, 1000);
-        }
-
-        // 일별 진행률 업데이트
         function updateDayProgress(dayCard) {
             const meals = dayCard.querySelectorAll('.meal');
             const completedMeals = dayCard.querySelectorAll('.meal.completed');
             const progress = (completedMeals.length / meals.length) * 100;
-            
-            const progressFill = dayCard.querySelector('.day-progress-fill');
-            progressFill.style.width = progress + '%';
+            dayCard.querySelector('.day-progress-fill').style.width = progress + '%';
         }
 
-        // 사용자 데이터 로드
-        function loadUserData() {
-            document.querySelectorAll('.meal').forEach(meal => {
-                meal.classList.remove('completed');
-                const checkBtn = meal.querySelector('.check-btn');
-                checkBtn.textContent = '완료';
-                checkBtn.classList.remove('checked');
-                meal.querySelector('.substitute-input').value = '';
-            });
-
-            for (const key in userData[currentUser]) {
-                const data = userData[currentUser][key];
-                const [week, day, mealType] = key.replace(/week|day/g, '').split('_');
-                
-                const weekSection = document.querySelector(`.week-section[data-week="${week}"]`);
-                if (weekSection) {
-                    const dayCard = weekSection.querySelector(`.day-card[data-day="${day}"]`);
-                    if (dayCard) {
-                        const meal = dayCard.querySelector(`.meal[data-meal="${mealType}"]`);
-                        if (meal) {
-                            const checkBtn = meal.querySelector('.check-btn');
-                            const substituteInput = meal.querySelector('.substitute-input');
-                            
-                            if (data.completed) {
-                                meal.classList.add('completed');
-                                checkBtn.textContent = '완료됨';
-                                checkBtn.classList.add('checked');
-                            }
-                            
-                            substituteInput.value = data.substitute || '';
-                            updateDayProgress(dayCard);
-                        }
-                    }
-                }
-            }
-            
-            updateRanking();
-        }
-
-        // 랭킹 업데이트
         function updateRanking() {
             const userStats = [];
             
@@ -699,7 +398,6 @@
                             const dayData = weekData[day];
                             for (const meal in dayData) {
                                 totalMeals++;
-                                
                                 const key = `week${week}_day${day}_${meal}`;
                                 if (userData[user][key] && userData[user][key].completed) {
                                     completedMeals++;
@@ -710,11 +408,7 @@
                 }
                 
                 const percentage = totalMeals > 0 ? Math.round((completedMeals / totalMeals) * 100) : 0;
-                userStats.push({
-                    user: user,
-                    name: user,
-                    percentage: percentage
-                });
+                userStats.push({ user: user, percentage: percentage });
             }
             
             userStats.sort((a, b) => b.percentage - a.percentage);
@@ -722,19 +416,42 @@
             const rankingItems = document.querySelectorAll('.ranking-item');
             userStats.forEach((stat, index) => {
                 if (rankingItems[index]) {
-                    rankingItems[index].querySelector('.rank-name').textContent = stat.name;
+                    rankingItems[index].querySelector('.rank-name').textContent = stat.user;
                     rankingItems[index].querySelector('.rank-percentage').textContent = stat.percentage + '%';
-                    
-                    rankingItems[index].classList.remove('first', 'second', 'third');
-                    
-                    if (index === 0) rankingItems[index].classList.add('first');
-                    else if (index === 1) rankingItems[index].classList.add('second');
-                    else if (index === 2) rankingItems[index].classList.add('third');
                 }
             });
         }
 
-        // 동적으로 전체 식단표 생성
+        function loadUserData() {
+            document.querySelectorAll('.meal').forEach(meal => {
+                meal.classList.remove('completed');
+                const checkBtn = meal.querySelector('.check-btn');
+                checkBtn.textContent = '완료';
+                checkBtn.classList.remove('checked');
+            });
+
+            for (const key in userData[currentUser]) {
+                const data = userData[currentUser][key];
+                const [week, day, mealType] = key.replace(/week|day/g, '').split('_');
+                
+                const weekSection = document.querySelector(`.week-section[data-week="${week}"]`);
+                if (weekSection) {
+                    const dayCard = weekSection.querySelector(`.day-card[data-day="${day}"]`);
+                    if (dayCard) {
+                        const meal = dayCard.querySelector(`.meal[data-meal="${mealType}"]`);
+                        if (meal && data.completed) {
+                            meal.classList.add('completed');
+                            const checkBtn = meal.querySelector('.check-btn');
+                            checkBtn.textContent = '완료됨';
+                            checkBtn.classList.add('checked');
+                            updateDayProgress(dayCard);
+                        }
+                    }
+                }
+            }
+            updateRanking();
+        }
+
         function generateFullSchedule() {
             const weekSections = document.querySelectorAll('.week-section');
             
@@ -758,38 +475,32 @@
                             <div class="day-header">
                                 <div class="day-title">${day}일차 (${dayName})</div>
                                 <div class="day-progress">
-                                    <div class="day-progress-fill" style="width: 0%"></div>
+                                    <div class="day-progress-fill"></div>
                                 </div>
                             </div>
                             <div class="meals">
                                 <div class="meal" data-meal="아침">
-                                    <div class="meal-header">
-                                        <div class="meal-title">아침</div>
-                                    </div>
+                                    <div class="meal-title">아침</div>
                                     <div class="meal-food">${dayData.아침}</div>
                                     <div class="meal-controls">
                                         <button class="check-btn">완료</button>
-                                        <input type="text" class="substitute-input" placeholder="대체식을 입력하세요...">
+                                        <input type="text" class="substitute-input" placeholder="대체식">
                                     </div>
                                 </div>
                                 <div class="meal" data-meal="점심">
-                                    <div class="meal-header">
-                                        <div class="meal-title">점심</div>
-                                    </div>
+                                    <div class="meal-title">점심</div>
                                     <div class="meal-food">${dayData.점심}</div>
                                     <div class="meal-controls">
                                         <button class="check-btn">완료</button>
-                                        <input type="text" class="substitute-input" placeholder="대체식을 입력하세요...">
+                                        <input type="text" class="substitute-input" placeholder="대체식">
                                     </div>
                                 </div>
                                 <div class="meal" data-meal="저녁">
-                                    <div class="meal-header">
-                                        <div class="meal-title">저녁</div>
-                                    </div>
+                                    <div class="meal-title">저녁</div>
                                     <div class="meal-food">${dayData.저녁}</div>
                                     <div class="meal-controls">
                                         <button class="check-btn">완료</button>
-                                        <input type="text" class="substitute-input" placeholder="대체식을 입력하세요...">
+                                        <input type="text" class="substitute-input" placeholder="대체식">
                                     </div>
                                 </div>
                             </div>
@@ -801,4 +512,18 @@
             });
         }
 
-        // 알림 표시
+        // 로컬 데이터 로드
+        const savedData = localStorage.getItem('switchOnDietData');
+        if (savedData) {
+            userData = JSON.parse(savedData);
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            generateFullSchedule();
+            loadUserData();
+            updateRanking();
+        });
+    </script>
+</body>
+</html>
