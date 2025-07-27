@@ -376,8 +376,8 @@
     <script>
         console.log('스크립트 시작');
 
-        // 전역 변수 - 새 웹앱 URL로 수정됨
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwAuZw2dTS1iCE2HIgPQUZ3NLs3kYsp5G2BUOMm65Z-thPjR9HSvlC8BQuZ6FffZw87/exec';
+        // ❗️❗️❗️ 이 부분에 2번 단계에서 복사한 "새로운" URL을 붙여넣으세요 ❗️❗️❗️
+        const WEB_APP_URL = '여기에_새로운_URL_붙여넣기';
         
         let userData = { '츄': {}, '디': {}, '푸': {} };
         let currentUser = '츄';
@@ -635,21 +635,21 @@
             updateRanking();
         }
 
-        // 서버 저장 함수
+        // 서버 저장 함수 (수정된 최종 버전)
         async function saveToServer(user, week, day, meal, completed, substitute = '') {
             try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user: user,
-                        week: week,
-                        day: day,
-                        meal: meal,
-                        completed: completed,
-                        substitute: substitute
-                    })
+                // URL에 데이터를 담아 보내는 방식으로 변경
+                const url = new URL(WEB_APP_URL);
+                url.searchParams.append('user', user);
+                url.searchParams.append('week', week);
+                url.searchParams.append('day', day);
+                url.searchParams.append('meal', meal);
+                url.searchParams.append('completed', completed);
+                url.searchParams.append('substitute', substitute);
+                url.searchParams.append('action', 'save'); // 저장 동작임을 명시
+
+                const response = await fetch(url, {
+                    method: 'GET', // POST 대신 GET으로 변경
                 });
                 
                 const result = await response.json();
