@@ -377,7 +377,7 @@
         console.log('스크립트 시작');
 
         // 전역 변수 - 새 웹앱 URL로 수정됨
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyUS8qeD3vJYvNku_bCdnTojKZQ71ct5ejtz99nFpss1vzOCiggMr9Da54r-HaTwITp/exec';
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw4VL9hoEKGcgm8EVXXjX8FfO_ELb8dJ8qvl0kPDFrd-YHKM02V8iOKxX0G7R6bs8Iy/exec';
         
         let userData = { '츄': {}, '디': {}, '푸': {} };
         let currentUser = '츄';
@@ -524,7 +524,6 @@
                 if (userData[user]) {
                     for (const key in userData[user]) {
                         if (key.startsWith('week')) { // 유효한 식단 데이터인지 확인
-                            totalMeals++;
                             if (userData[user][key].completed) {
                                 completedMeals++;
                             }
@@ -532,7 +531,7 @@
                     }
                 }
                 // 전체 식단 수(4주 * 7일 * 4끼 = 108)를 기준으로 달성률 계산
-                const totalDietMeals = 108; 
+                const totalDietMeals = (4 * 7 * 4) - (4*4); // 4주, 주 7일, 하루 4끼 - 공복날
                 const percentage = totalDietMeals > 0 ? Math.round((completedMeals / totalDietMeals) * 100) : 0;
                 userStats.push({ user: user, percentage: percentage });
             });
@@ -721,7 +720,7 @@
                 currentUser = savedUser;
                 document.querySelectorAll('.user-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.user === currentUser);
-                });
+});
             }
 
             const savedData = localStorage.getItem('switchOnDietData');
