@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스위치온 다이어트 식단 관리</title>
+    <title>스위치온 다이어트 - 실시간 공유</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jua&family=Do+Hyeon&display=swap');
         
@@ -40,6 +40,40 @@
             font-family: 'Do Hyeon', sans-serif;
             font-size: 2.5em;
             margin-bottom: 10px;
+        }
+
+        .status-bar {
+            background: #f8f9fa;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .sync-dot.error {
+            background: #dc3545;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
 
         .user-selector {
@@ -137,7 +171,7 @@
 
         .meals {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
         }
 
@@ -213,6 +247,27 @@
             padding: 25px;
             border-radius: 20px;
             min-width: 200px;
+            transition: transform 0.3s ease;
+        }
+
+        .ranking-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .ranking-item.first {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #333;
+            transform: scale(1.1);
+        }
+
+        .ranking-item.second {
+            background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+            color: #333;
+        }
+
+        .ranking-item.third {
+            background: linear-gradient(135deg, #CD7F32, #B8860B);
+            color: white;
         }
 
         .rank-name {
@@ -225,9 +280,39 @@
             font-weight: bold;
         }
 
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .notification.sync {
+            background: #17a2b8;
+        }
+
         @media (max-width: 768px) {
             .meals {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
             }
             .ranking-list {
                 flex-direction: column;
@@ -238,13 +323,27 @@
                 gap: 5px;
             }
         }
+
+        @media (max-width: 480px) {
+            .meals {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>스위치온 다이어트 식단 관리</h1>
+            <h1>스위치온 다이어트 - 실시간 공유</h1>
             <p>츄디푸 HMH GMG</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="sync-status">
+                <span class="sync-dot" id="syncDot"></span>
+                <span id="syncStatus">실시간 동기화 중...</span>
+            </div>
+            <div id="lastSync">마지막 동기화: 대기 중</div>
         </div>
 
         <div class="user-selector">
@@ -268,7 +367,7 @@
         </div>
 
         <div class="ranking">
-            <h2>달성률 랭킹</h2>
+            <h2>실시간 달성률 랭킹</h2>
             <div class="ranking-list">
                 <div class="ranking-item">
                     <div class="rank-name">츄</div>
@@ -286,57 +385,155 @@
         </div>
     </div>
 
+    <div class="notification" id="notification"></div>
+
     <script>
+        // ⚠️ 여기에 설정값을 입력하세요!
+        const WEB_APP_URL = 'YOUR_WEB_APP_URL_HERE'; // Apps Script 웹앱 URL
+        
         let userData = { '츄': {}, '디': {}, '푸': {} };
         let currentUser = '츄';
+        let isOnline = true;
 
         const dietSchedule = {
             1: {
-                1: { 아침: '쉐이크', 점심: '쉐이크', 저녁: '쉐이크' },
-                2: { 아침: '쉐이크', 점심: '쉐이크', 저녁: '쉐이크' },
-                3: { 아침: '쉐이크', 점심: '저탄수화물식', 저녁: '저탄수화물식' },
-                4: { 아침: '쉐이크', 점심: '저탄수화물식', 저녁: '저탄수화물식' },
-                5: { 아침: '쉐이크', 점심: '쉐이크', 저녁: '쉐이크' },
-                6: { 아침: '쉐이크', 점심: '쉐이크', 저녁: '쉐이크' },
-                7: { 아침: '쉐이크', 점심: '저탄수화물식', 저녁: '저탄수화물식' }
+                1: { 아침: '쉐이크', 점심: '쉐이크', 간식: '쉐이크', 저녁: '쉐이크' },
+                2: { 아침: '쉐이크', 점심: '쉐이크', 간식: '쉐이크', 저녁: '쉐이크' },
+                3: { 아침: '쉐이크', 점심: '쉐이크', 간식: '쉐이크', 저녁: '쉐이크' },
+                4: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '쉐이크' },
+                5: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '쉐이크' },
+                6: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '쉐이크' },
+                7: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '쉐이크' }
             },
             2: {
-                8: { 아침: '쉐이크', 점심: '쉐이크', 저녁: '공복유지' },
-                9: { 아침: '저탄수화물식', 점심: '저탄수화물식', 저녁: '공복유지' },
-                10: { 아침: '쉐이크', 점심: '쉐이크', 저녁: '공복유지' },
-                11: { 아침: '쉐이크', 점심: '저탄수화물식', 저녁: '탄수화물제한식' },
-                12: { 아침: '쉐이크', 점심: '저탄수화물식', 저녁: '탄수화물제한식' },
-                13: { 아침: '쉐이크', 점심: '저탄수화물식', 저녁: '탄수화물제한식' },
-                14: { 아침: '쉐이크', 점심: '저탄수화물식', 저녁: '탄수화물제한식' }
+                8: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '탄수화물제한식' },
+                9: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '탄수화물제한식' },
+                10: { 아침: '공복유지', 점심: '공복유지', 간식: '공복유지', 저녁: '탄수화물제한식' },
+                11: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '탄수화물제한식' },
+                12: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '탄수화물제한식' },
+                13: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '탄수화물제한식' },
+                14: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '탄수화물제한식' }
             },
             3: {
-                15: { 아침: '쉐이크', 점심: '공복유지', 저녁: '쉐이크' },
-                16: { 아침: '저탄수화물식', 점심: '공복유지', 저녁: '저탄수화물식' },
-                17: { 아침: '쉐이크', 점심: '쉐이크', 저녁: '쉐이크' },
-                18: { 아침: '쉐이크', 점심: '저탄수화물식', 저녁: '탄수화물제한식' },
-                19: { 아침: '쉐이크', 점심: '저탄수화물식', 저녁: '탄수화물제한식' },
-                20: { 아침: '쉐이크', 점심: '공복유지', 저녁: '공복유지' },
-                21: { 아침: '쉐이크', 점심: '쉐이크', 저녁: '저탄수화물식' }
+                15: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '탄수화물제한식' },
+                16: { 아침: '공복유지', 점심: '공복유지', 간식: '공복유지', 저녁: '탄수화물제한식' },
+                17: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '탄수화물제한식' },
+                18: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '탄수화물제한식' },
+                19: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '탄수화물제한식' },
+                20: { 아침: '공복유지', 점심: '공복유지', 간식: '공복유지', 저녁: '탄수화물제한식' },
+                21: { 아침: '쉐이크', 점심: '저탄수화물식', 간식: '쉐이크', 저녁: '탄수화물제한식' }
             },
             4: {
-                22: { 아침: '쉐이크', 점심: '공복유지', 저녁: '쉐이크' },
-                23: { 아침: '일반식', 점심: '공복유지', 저녁: '일반식' },
-                24: { 아침: '쉐이크', 점심: '공복유지', 저녁: '쉐이크' },
-                25: { 아침: '공복유지', 점심: '공복유지', 저녁: '공복유지' },
-                26: { 아침: '쉐이크', 점심: '일반식', 저녁: '쉐이크' },
-                27: { 아침: '공복유지', 점심: '공복유지', 저녁: '공복유지' }
+                22: { 아침: '쉐이크', 점심: '일반식', 간식: '쉐이크', 저녁: '저탄수화물식' },
+                23: { 아침: '공복유지', 점심: '공복유지', 간식: '공복유지', 저녁: '저탄수화물식' },
+                24: { 아침: '쉐이크', 점심: '일반식', 간식: '쉐이크', 저녁: '저탄수화물식' },
+                25: { 아침: '공복유지', 점심: '공복유지', 간식: '공복유지', 저녁: '저탄수화물식' },
+                26: { 아침: '쉐이크', 점심: '일반식', 간식: '쉐이크', 저녁: '저탄수화물식' },
+                27: { 아침: '공복유지', 점심: '공복유지', 간식: '공복유지', 저녁: '저탄수화물식' }
             }
         };
 
+        // 실시간 동기화 함수
+        async function syncWithServer() {
+            if (!WEB_APP_URL || WEB_APP_URL === 'YOUR_WEB_APP_URL_HERE') {
+                updateSyncStatus('오프라인 모드', false);
+                return;
+            }
+
+            try {
+                const response = await fetch(WEB_APP_URL);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 서버 데이터를 로컬에 반영
+                    const serverData = { '츄': {}, '디': {}, '푸': {} };
+                    
+                    result.data.forEach(item => {
+                        const key = `week${item.week}_day${item.day}_${item.meal}`;
+                        if (!serverData[item.user]) {
+                            serverData[item.user] = {};
+                        }
+                        serverData[item.user][key] = {
+                            completed: item.completed,
+                            substitute: item.substitute || ''
+                        };
+                    });
+                    
+                    userData = serverData;
+                    loadUserData();
+                    updateRanking();
+                    updateSyncStatus('실시간 동기화 중', true);
+                    
+                    document.getElementById('lastSync').textContent = 
+                        '마지막 동기화: ' + new Date().toLocaleTimeString('ko-KR');
+                } else {
+                    updateSyncStatus('동기화 오류', false);
+                }
+            } catch (error) {
+                console.error('동기화 오류:', error);
+                updateSyncStatus('연결 오류', false);
+                isOnline = false;
+            }
+        }
+
+        // 서버에 데이터 저장
+        async function saveToServer(user, week, day, meal, completed, substitute = '') {
+            if (!WEB_APP_URL || WEB_APP_URL === 'YOUR_WEB_APP_URL_HERE') {
+                return false;
+            }
+
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user: user,
+                        week: parseInt(week),
+                        day: parseInt(day),
+                        meal: meal,
+                        completed: completed,
+                        substitute: substitute
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('실시간 저장 완료!', 'sync');
+                    return true;
+                } else {
+                    showNotification('저장 실패', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('저장 오류:', error);
+                showNotification('저장 오류', 'error');
+                return false;
+            }
+        }
+
+        // 동기화 상태 업데이트
+        function updateSyncStatus(message, online) {
+            const dot = document.getElementById('syncDot');
+            const status = document.getElementById('syncStatus');
+            
+            dot.className = online ? 'sync-dot' : 'sync-dot error';
+            status.textContent = message;
+            isOnline = online;
+        }
+
+        // 사용자 선택
         document.querySelectorAll('.user-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentUser = this.dataset.user;
                 loadUserData();
+                localStorage.setItem('currentUser', currentUser);
             });
         });
 
+        // 주차 탭 전환
         document.querySelectorAll('.week-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 document.querySelectorAll('.week-tab').forEach(t => t.classList.remove('active'));
@@ -346,7 +543,8 @@
             });
         });
 
-        document.addEventListener('click', function(e) {
+        // 식단 체크 이벤트
+        document.addEventListener('click', async function(e) {
             if (e.target.classList.contains('check-btn')) {
                 const meal = e.target.closest('.meal');
                 const dayCard = e.target.closest('.day-card');
@@ -361,6 +559,7 @@
                 
                 userData[currentUser][key].completed = !userData[currentUser][key].completed;
                 
+                // UI 업데이트
                 if (userData[currentUser][key].completed) {
                     meal.classList.add('completed');
                     e.target.textContent = '완료됨';
@@ -373,7 +572,50 @@
                 
                 updateDayProgress(dayCard);
                 updateRanking();
-                localStorage.setItem('switchOnDietData', JSON.stringify(userData));
+                
+                // 서버에 실시간 저장
+                await saveToServer(
+                    currentUser, 
+                    week, 
+                    day, 
+                    mealType, 
+                    userData[currentUser][key].completed,
+                    userData[currentUser][key].substitute
+                );
+                
+                // 즉시 동기화
+                setTimeout(syncWithServer, 1000);
+            }
+        });
+
+        // 대체식 입력 이벤트
+        document.addEventListener('input', async function(e) {
+            if (e.target.classList.contains('substitute-input')) {
+                const meal = e.target.closest('.meal');
+                const dayCard = e.target.closest('.day-card');
+                const mealType = meal.dataset.meal;
+                const day = dayCard.dataset.day;
+                const week = document.querySelector('.week-section.active').dataset.week;
+                const key = `week${week}_day${day}_${mealType}`;
+                
+                if (!userData[currentUser][key]) {
+                    userData[currentUser][key] = { completed: false, substitute: '' };
+                }
+                
+                userData[currentUser][key].substitute = e.target.value;
+                
+                // 디바운스로 서버 저장
+                clearTimeout(window.substituteTimeout);
+                window.substituteTimeout = setTimeout(async () => {
+                    await saveToServer(
+                        currentUser, 
+                        week, 
+                        day, 
+                        mealType, 
+                        userData[currentUser][key].completed,
+                        userData[currentUser][key].substitute
+                    );
+                }, 2000);
             }
         });
 
@@ -381,149 +623,3 @@
             const meals = dayCard.querySelectorAll('.meal');
             const completedMeals = dayCard.querySelectorAll('.meal.completed');
             const progress = (completedMeals.length / meals.length) * 100;
-            dayCard.querySelector('.day-progress-fill').style.width = progress + '%';
-        }
-
-        function updateRanking() {
-            const userStats = [];
-            
-            for (const user in userData) {
-                let totalMeals = 0;
-                let completedMeals = 0;
-                
-                for (let week = 1; week <= 4; week++) {
-                    const weekData = dietSchedule[week];
-                    if (weekData) {
-                        for (const day in weekData) {
-                            const dayData = weekData[day];
-                            for (const meal in dayData) {
-                                totalMeals++;
-                                const key = `week${week}_day${day}_${meal}`;
-                                if (userData[user][key] && userData[user][key].completed) {
-                                    completedMeals++;
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                const percentage = totalMeals > 0 ? Math.round((completedMeals / totalMeals) * 100) : 0;
-                userStats.push({ user: user, percentage: percentage });
-            }
-            
-            userStats.sort((a, b) => b.percentage - a.percentage);
-            
-            const rankingItems = document.querySelectorAll('.ranking-item');
-            userStats.forEach((stat, index) => {
-                if (rankingItems[index]) {
-                    rankingItems[index].querySelector('.rank-name').textContent = stat.user;
-                    rankingItems[index].querySelector('.rank-percentage').textContent = stat.percentage + '%';
-                }
-            });
-        }
-
-        function loadUserData() {
-            document.querySelectorAll('.meal').forEach(meal => {
-                meal.classList.remove('completed');
-                const checkBtn = meal.querySelector('.check-btn');
-                checkBtn.textContent = '완료';
-                checkBtn.classList.remove('checked');
-            });
-
-            for (const key in userData[currentUser]) {
-                const data = userData[currentUser][key];
-                const [week, day, mealType] = key.replace(/week|day/g, '').split('_');
-                
-                const weekSection = document.querySelector(`.week-section[data-week="${week}"]`);
-                if (weekSection) {
-                    const dayCard = weekSection.querySelector(`.day-card[data-day="${day}"]`);
-                    if (dayCard) {
-                        const meal = dayCard.querySelector(`.meal[data-meal="${mealType}"]`);
-                        if (meal && data.completed) {
-                            meal.classList.add('completed');
-                            const checkBtn = meal.querySelector('.check-btn');
-                            checkBtn.textContent = '완료됨';
-                            checkBtn.classList.add('checked');
-                            updateDayProgress(dayCard);
-                        }
-                    }
-                }
-            }
-            updateRanking();
-        }
-
-        function generateFullSchedule() {
-            const weekSections = document.querySelectorAll('.week-section');
-            
-            weekSections.forEach((section, weekIndex) => {
-                const weekNum = weekIndex + 1;
-                const weekData = dietSchedule[weekNum];
-                
-                if (weekData) {
-                    section.innerHTML = '';
-                    
-                    for (const day in weekData) {
-                        const dayData = weekData[day];
-                        const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
-                        const dayName = dayNames[(parseInt(day) - 1) % 7];
-                        
-                        const dayCard = document.createElement('div');
-                        dayCard.className = 'day-card';
-                        dayCard.dataset.day = day;
-                        
-                        dayCard.innerHTML = `
-                            <div class="day-header">
-                                <div class="day-title">${day}일차 (${dayName})</div>
-                                <div class="day-progress">
-                                    <div class="day-progress-fill"></div>
-                                </div>
-                            </div>
-                            <div class="meals">
-                                <div class="meal" data-meal="아침">
-                                    <div class="meal-title">아침</div>
-                                    <div class="meal-food">${dayData.아침}</div>
-                                    <div class="meal-controls">
-                                        <button class="check-btn">완료</button>
-                                        <input type="text" class="substitute-input" placeholder="대체식">
-                                    </div>
-                                </div>
-                                <div class="meal" data-meal="점심">
-                                    <div class="meal-title">점심</div>
-                                    <div class="meal-food">${dayData.점심}</div>
-                                    <div class="meal-controls">
-                                        <button class="check-btn">완료</button>
-                                        <input type="text" class="substitute-input" placeholder="대체식">
-                                    </div>
-                                </div>
-                                <div class="meal" data-meal="저녁">
-                                    <div class="meal-title">저녁</div>
-                                    <div class="meal-food">${dayData.저녁}</div>
-                                    <div class="meal-controls">
-                                        <button class="check-btn">완료</button>
-                                        <input type="text" class="substitute-input" placeholder="대체식">
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        
-                        section.appendChild(dayCard);
-                    }
-                }
-            });
-        }
-
-        // 로컬 데이터 로드
-        const savedData = localStorage.getItem('switchOnDietData');
-        if (savedData) {
-            userData = JSON.parse(savedData);
-        }
-
-        // 페이지 로드 시 초기화
-        document.addEventListener('DOMContentLoaded', function() {
-            generateFullSchedule();
-            loadUserData();
-            updateRanking();
-        });
-    </script>
-</body>
-</html>
