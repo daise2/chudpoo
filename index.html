@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스위치온 다이어트 - 실시간 공유</title>
+    <title>스위치온 다이어트 식단 관리</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jua&family=Do+Hyeon&display=swap');
         
@@ -62,18 +62,6 @@
             height: 8px;
             border-radius: 50%;
             background: #28a745;
-            animation: pulse 2s infinite;
-        }
-
-        .sync-dot.error {
-            background: #dc3545;
-            animation: none;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
         }
 
         .user-selector {
@@ -202,6 +190,7 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .check-btn {
@@ -211,6 +200,11 @@
             padding: 8px 15px;
             border-radius: 20px;
             cursor: pointer;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .check-btn:hover {
+            background: #1565c0;
         }
 
         .check-btn.checked {
@@ -222,6 +216,7 @@
             padding: 8px 12px;
             border: 1px solid #e1e8ed;
             border-radius: 15px;
+            min-width: 120px;
         }
 
         .ranking {
@@ -247,17 +242,12 @@
             padding: 25px;
             border-radius: 20px;
             min-width: 200px;
-            transition: transform 0.3s ease;
-        }
-
-        .ranking-item:hover {
-            transform: translateY(-5px);
         }
 
         .ranking-item.first {
             background: linear-gradient(135deg, #FFD700, #FFA500);
             color: #333;
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
 
         .ranking-item.second {
@@ -305,10 +295,6 @@
             background: #dc3545;
         }
 
-        .notification.sync {
-            background: #17a2b8;
-        }
-
         @media (max-width: 768px) {
             .meals {
                 grid-template-columns: repeat(2, 1fr);
@@ -345,29 +331,26 @@
         <div class="status-bar">
             <div class="sync-status">
                 <span class="sync-dot" id="syncDot"></span>
-                <span id="syncStatus">로컬 저장 모드</span>
+                <span id="syncStatus">연결 확인 중...</span>
             </div>
             <div id="lastSync">마지막 저장: 없음</div>
         </div>
 
         <div class="user-selector">
-            <button class="user-btn active" data-user="츄">츄</button>
-            <button class="user-btn" data-user="디">디</button>
-            <button class="user-btn" data-user="푸">푸</button>
+            <button class="user-btn active" data-user="츄" onclick="selectUser('츄')">츄</button>
+            <button class="user-btn" data-user="디" onclick="selectUser('디')">디</button>
+            <button class="user-btn" data-user="푸" onclick="selectUser('푸')">푸</button>
         </div>
 
         <div class="week-tabs">
-            <div class="week-tab active" data-week="1">1주차</div>
-            <div class="week-tab" data-week="2">2주차</div>
-            <div class="week-tab" data-week="3">3주차</div>
-            <div class="week-tab" data-week="4">4주차</div>
+            <div class="week-tab active" data-week="1" onclick="selectWeek(1)">1주차</div>
+            <div class="week-tab" data-week="2" onclick="selectWeek(2)">2주차</div>
+            <div class="week-tab" data-week="3" onclick="selectWeek(3)">3주차</div>
+            <div class="week-tab" data-week="4" onclick="selectWeek(4)">4주차</div>
         </div>
 
-        <div class="diet-schedule">
-            <div class="week-section active" data-week="1"></div>
-            <div class="week-section" data-week="2"></div>
-            <div class="week-section" data-week="3"></div>
-            <div class="week-section" data-week="4"></div>
+        <div class="diet-schedule" id="dietSchedule">
+            <!-- 여기에 식단표가 동적으로 생성됩니다 -->
         </div>
 
         <div class="ranking">
@@ -375,15 +358,15 @@
             <div class="ranking-list">
                 <div class="ranking-item">
                     <div class="rank-name">츄</div>
-                    <div class="rank-percentage">0%</div>
+                    <div class="rank-percentage" id="rank-츄">0%</div>
                 </div>
                 <div class="ranking-item">
                     <div class="rank-name">디</div>
-                    <div class="rank-percentage">0%</div>
+                    <div class="rank-percentage" id="rank-디">0%</div>
                 </div>
                 <div class="ranking-item">
                     <div class="rank-name">푸</div>
-                    <div class="rank-percentage">0%</div>
+                    <div class="rank-percentage" id="rank-푸">0%</div>
                 </div>
             </div>
         </div>
@@ -392,13 +375,16 @@
     <div class="notification" id="notification"></div>
 
     <script>
-        // ✅ 실시간 공유 웹앱 URL 설정 완료
+        console.log('스크립트 시작');
+
+        // 전역 변수
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx1YT6tH95tlK77W686OpISYhro1sB_70YkDJcpZteh4XRk96MpbQCbIyxGjU4KpiRU/exec';
         
         let userData = { '츄': {}, '디': {}, '푸': {} };
         let currentUser = '츄';
-        let isOnline = true;
+        let currentWeek = 1;
 
+        // 식단표 데이터
         const dietSchedule = {
             1: {
                 1: { 아침: '쉐이크', 점심: '쉐이크', 간식: '쉐이크', 저녁: '쉐이크' },
@@ -437,13 +423,274 @@
             }
         };
 
-        // 실시간 동기화 함수 (현재는 로컬 모드)
-        async function syncWithServer() {
-            if (!WEB_APP_URL || WEB_APP_URL === 'YOUR_WEB_APP_URL_HERE') {
-                updateSyncStatus('로컬 저장 모드', true);
+        // 사용자 선택 함수
+        function selectUser(user) {
+            console.log('사용자 선택:', user);
+            
+            // 버튼 상태 업데이트
+            document.querySelectorAll('.user-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-user="${user}"]`).classList.add('active');
+            
+            currentUser = user;
+            localStorage.setItem('currentUser', currentUser);
+            loadUserData();
+            showNotification(`${user}님으로 전환되었습니다!`);
+        }
+
+        // 주차 선택 함수
+        function selectWeek(week) {
+            console.log('주차 선택:', week);
+            
+            // 탭 상태 업데이트
+            document.querySelectorAll('.week-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-week="${week}"]`).classList.add('active');
+            
+            currentWeek = week;
+            generateWeekSchedule(week);
+        }
+
+        // 식사 체크 함수
+        function checkMeal(week, day, meal) {
+            console.log('식사 체크:', week, day, meal);
+            
+            const key = `week${week}_day${day}_${meal}`;
+            
+            if (!userData[currentUser][key]) {
+                userData[currentUser][key] = { completed: false, substitute: '' };
+            }
+            
+            userData[currentUser][key].completed = !userData[currentUser][key].completed;
+            
+            // UI 업데이트
+            const mealElement = document.getElementById(`meal-${week}-${day}-${meal}`);
+            const button = mealElement.querySelector('.check-btn');
+            
+            if (userData[currentUser][key].completed) {
+                mealElement.classList.add('completed');
+                button.textContent = '완료됨';
+                button.classList.add('checked');
+            } else {
+                mealElement.classList.remove('completed');
+                button.textContent = '완료';
+                button.classList.remove('checked');
+            }
+            
+            updateDayProgress(week, day);
+            updateRanking();
+            saveToServer(currentUser, week, day, meal, userData[currentUser][key].completed);
+            
+            // 로컬 저장
+            localStorage.setItem('switchOnDietData', JSON.stringify(userData));
+        }
+
+        // 대체식 입력 함수
+        function updateSubstitute(week, day, meal, value) {
+            const key = `week${week}_day${day}_${meal}`;
+            
+            if (!userData[currentUser][key]) {
+                userData[currentUser][key] = { completed: false, substitute: '' };
+            }
+            
+            userData[currentUser][key].substitute = value;
+            
+            // 로컬 저장
+            localStorage.setItem('switchOnDietData', JSON.stringify(userData));
+            
+            // 서버 저장 (디바운스)
+            clearTimeout(window.substituteTimeout);
+            window.substituteTimeout = setTimeout(() => {
+                saveToServer(currentUser, week, day, meal, userData[currentUser][key].completed, value);
+            }, 2000);
+        }
+
+        // 일별 진행률 업데이트
+        function updateDayProgress(week, day) {
+            const totalMeals = 4; // 아침, 점심, 간식, 저녁
+            let completedMeals = 0;
+            
+            ['아침', '점심', '간식', '저녁'].forEach(meal => {
+                const key = `week${week}_day${day}_${meal}`;
+                if (userData[currentUser][key] && userData[currentUser][key].completed) {
+                    completedMeals++;
+                }
+            });
+            
+            const progress = (completedMeals / totalMeals) * 100;
+            const progressElement = document.getElementById(`progress-${week}-${day}`);
+            if (progressElement) {
+                progressElement.style.width = progress + '%';
+            }
+        }
+
+        // 랭킹 업데이트
+        function updateRanking() {
+            const userStats = [];
+            
+            for (const user in userData) {
+                let totalMeals = 0;
+                let completedMeals = 0;
+                
+                for (let week = 1; week <= 4; week++) {
+                    const weekData = dietSchedule[week];
+                    if (weekData) {
+                        for (const day in weekData) {
+                            const dayData = weekData[day];
+                            for (const meal in dayData) {
+                                totalMeals++;
+                                const key = `week${week}_day${day}_${meal}`;
+                                if (userData[user][key] && userData[user][key].completed) {
+                                    completedMeals++;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                const percentage = totalMeals > 0 ? Math.round((completedMeals / totalMeals) * 100) : 0;
+                userStats.push({ user: user, percentage: percentage });
+            }
+            
+            // 랭킹 정렬
+            userStats.sort((a, b) => b.percentage - a.percentage);
+            
+            // UI 업데이트
+            userStats.forEach((stat, index) => {
+                const rankElement = document.getElementById(`rank-${stat.user}`);
+                if (rankElement) {
+                    rankElement.textContent = stat.percentage + '%';
+                }
+                
+                const rankItem = rankElement.closest('.ranking-item');
+                rankItem.classList.remove('first', 'second', 'third');
+                
+                if (index === 0) rankItem.classList.add('first');
+                else if (index === 1) rankItem.classList.add('second');
+                else if (index === 2) rankItem.classList.add('third');
+            });
+        }
+
+        // 주차별 식단표 생성
+        function generateWeekSchedule(week) {
+            console.log('주차별 식단표 생성:', week);
+            
+            const scheduleContainer = document.getElementById('dietSchedule');
+            const weekData = dietSchedule[week];
+            
+            if (!weekData) {
+                scheduleContainer.innerHTML = '<p>해당 주차 데이터가 없습니다.</p>';
                 return;
             }
+            
+            let html = '';
+            
+            for (const day in weekData) {
+                const dayData = weekData[day];
+                const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+                const dayName = dayNames[(parseInt(day) - 1) % 7];
+                
+                html += `
+                    <div class="day-card">
+                        <div class="day-header">
+                            <div class="day-title">${day}일차 (${dayName})</div>
+                            <div class="day-progress">
+                                <div class="day-progress-fill" id="progress-${week}-${day}"></div>
+                            </div>
+                        </div>
+                        <div class="meals">
+                `;
+                
+                ['아침', '점심', '간식', '저녁'].forEach(meal => {
+                    html += `
+                        <div class="meal" id="meal-${week}-${day}-${meal}">
+                            <div class="meal-title">${meal}</div>
+                            <div class="meal-food">${dayData[meal]}</div>
+                            <div class="meal-controls">
+                                <button class="check-btn" onclick="checkMeal(${week}, ${day}, '${meal}')">완료</button>
+                                <input type="text" class="substitute-input" placeholder="대체식" 
+                                       oninput="updateSubstitute(${week}, ${day}, '${meal}', this.value)">
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            scheduleContainer.innerHTML = html;
+            loadUserData();
+        }
 
+        // 사용자 데이터 로드
+        function loadUserData() {
+            console.log('사용자 데이터 로드:', currentUser);
+            
+            for (const key in userData[currentUser]) {
+                const data = userData[currentUser][key];
+                const [week, day, meal] = key.replace(/week|day/g, '').split('_');
+                
+                const mealElement = document.getElementById(`meal-${week}-${day}-${meal}`);
+                if (mealElement) {
+                    const button = mealElement.querySelector('.check-btn');
+                    const input = mealElement.querySelector('.substitute-input');
+                    
+                    if (data.completed) {
+                        mealElement.classList.add('completed');
+                        button.textContent = '완료됨';
+                        button.classList.add('checked');
+                    }
+                    
+                    if (input) {
+                        input.value = data.substitute || '';
+                    }
+                    
+                    updateDayProgress(parseInt(week), parseInt(day));
+                }
+            }
+            updateRanking();
+        }
+
+        // 서버 저장 함수
+        async function saveToServer(user, week, day, meal, completed, substitute = '') {
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user: user,
+                        week: parseInt(week),
+                        day: parseInt(day),
+                        meal: meal,
+                        completed: completed,
+                        substitute: substitute
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('syncStatus').textContent = '서버 동기화됨';
+                    document.getElementById('lastSync').textContent = '마지막 저장: ' + new Date().toLocaleTimeString('ko-KR');
+                    showNotification('저장 완료!');
+                } else {
+                    document.getElementById('syncStatus').textContent = '저장 실패';
+                    showNotification('저장 실패', 'error');
+                }
+            } catch (error) {
+                console.error('저장 오류:', error);
+                document.getElementById('syncStatus').textContent = '로컬 저장만';
+                showNotification('로컬에만 저장됨', 'error');
+            }
+        }
+
+        // 서버에서 데이터 로드
+        async function loadFromServer() {
             try {
                 const response = await fetch(WEB_APP_URL);
                 const result = await response.json();
@@ -464,186 +711,66 @@
                     
                     userData = serverData;
                     loadUserData();
-                    updateRanking();
-                    updateSyncStatus('서버 동기화됨', true);
-                    
-                    document.getElementById('lastSync').textContent = 
-                        '마지막 동기화: ' + new Date().toLocaleTimeString('ko-KR');
+                    document.getElementById('syncStatus').textContent = '서버 동기화됨';
                 } else {
-                    updateSyncStatus('동기화 오류', false);
+                    document.getElementById('syncStatus').textContent = '로컬 모드';
                 }
             } catch (error) {
                 console.error('동기화 오류:', error);
-                updateSyncStatus('로컬 저장 모드', true);
-                isOnline = false;
+                document.getElementById('syncStatus').textContent = '로컬 모드';
             }
         }
 
-        // 서버에 데이터 저장
-        async function saveToServer(user, week, day, meal, completed, substitute = '') {
-            // 로컬 저장도 함께 진행
-            localStorage.setItem('switchOnDietData', JSON.stringify(userData));
-            document.getElementById('lastSync').textContent = '마지막 저장: ' + new Date().toLocaleTimeString('ko-KR');
+        // 알림 표시
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
 
-            if (!WEB_APP_URL || WEB_APP_URL === 'YOUR_WEB_APP_URL_HERE') {
-                return true; // 로컬 저장만 성공으로 처리
-            }
-
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user: user,
-                        week: parseInt(week),
-                        day: parseInt(day),
-                        meal: meal,
-                        completed: completed,
-                        substitute: substitute
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showNotification('저장 완료!', 'success');
-                    return true;
-                } else {
-                    showNotification('서버 저장 실패, 로컬에만 저장됨', 'error');
-                    return false;
+        // 페이지 로드 시 초기화
+        window.addEventListener('load', function() {
+            console.log('페이지 초기화 시작');
+            
+            // 로컬 저장된 데이터 로드
+            const savedData = localStorage.getItem('switchOnDietData');
+            if (savedData) {
+                try {
+                    userData = JSON.parse(savedData);
+                    console.log('로컬 데이터 로드 성공');
+                } catch (error) {
+                    console.error('로컬 데이터 로드 실패:', error);
                 }
-            } catch (error) {
-                console.error('저장 오류:', error);
-                showNotification('로컬에 저장됨', 'success');
-                return false;
             }
-        }
-
-        // 동기화 상태 업데이트
-        function updateSyncStatus(message, online) {
-            const dot = document.getElementById('syncDot');
-            const status = document.getElementById('syncStatus');
             
-            dot.className = online ? 'sync-dot' : 'sync-dot error';
-            status.textContent = message;
-            isOnline = online;
-        }
-
-        // 사용자 선택 이벤트
-        function initializeUserEvents() {
-            document.querySelectorAll('.user-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentUser = this.dataset.user;
-                    loadUserData();
-                    localStorage.setItem('currentUser', currentUser);
-                    showNotification(`${currentUser}님으로 전환되었습니다!`, 'success');
+            // 저장된 사용자 로드
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser && ['츄', '디', '푸'].includes(savedUser)) {
+                currentUser = savedUser;
+                document.querySelectorAll('.user-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.user === currentUser);
                 });
-            });
-        }
-
-        // 주차 탭 전환 이벤트
-        function initializeWeekEvents() {
-            document.querySelectorAll('.week-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('.week-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.week-section').forEach(s => s.classList.remove('active'));
-                    this.classList.add('active');
-                    document.querySelector(`.week-section[data-week="${this.dataset.week}"]`).classList.add('active');
-                });
-            });
-        }
-
-        // 식단 체크 및 대체식 입력 이벤트
-        function initializeMealEvents() {
-            // 이벤트 위임을 사용해서 동적으로 생성된 요소에도 이벤트 적용
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('check-btn')) {
-                    handleMealCheck(e);
-                }
-            });
-
-            document.addEventListener('input', function(e) {
-                if (e.target.classList.contains('substitute-input')) {
-                    handleSubstituteInput(e);
-                }
-            });
-        }
-
-        // 식단 체크 처리 함수
-        async function handleMealCheck(e) {
-            const meal = e.target.closest('.meal');
-            const dayCard = e.target.closest('.day-card');
-            const mealType = meal.dataset.meal;
-            const day = dayCard.dataset.day;
-            const week = document.querySelector('.week-section.active').dataset.week;
-            const key = `week${week}_day${day}_${mealType}`;
-            
-            if (!userData[currentUser][key]) {
-                userData[currentUser][key] = { completed: false, substitute: '' };
+                console.log('저장된 사용자 로드:', currentUser);
             }
             
-            userData[currentUser][key].completed = !userData[currentUser][key].completed;
+            // 첫 번째 주차 표시
+            generateWeekSchedule(1);
             
-            // UI 업데이트
-            if (userData[currentUser][key].completed) {
-                meal.classList.add('completed');
-                e.target.textContent = '완료됨';
-                e.target.classList.add('checked');
-            } else {
-                meal.classList.remove('completed');
-                e.target.textContent = '완료';
-                e.target.classList.remove('checked');
-            }
+            // 서버에서 데이터 로드 시도
+            loadFromServer();
             
-            updateDayProgress(dayCard);
-            updateRanking();
+            // 10초마다 동기화
+            setInterval(loadFromServer, 10000);
             
-            // 서버에 저장
-            await saveToServer(
-                currentUser, 
-                week, 
-                day, 
-                mealType, 
-                userData[currentUser][key].completed,
-                userData[currentUser][key].substitute
-            );
-            
-            // 즉시 동기화
-            setTimeout(syncWithServer, 1000);
-        }
+            showNotification('앱이 준비되었습니다!');
+            console.log('초기화 완료');
+        });
 
-        // 대체식 입력 처리 함수
-        async function handleSubstituteInput(e) {
-            const meal = e.target.closest('.meal');
-            const dayCard = e.target.closest('.day-card');
-            const mealType = meal.dataset.meal;
-            const day = dayCard.dataset.day;
-            const week = document.querySelector('.week-section.active').dataset.week;
-            const key = `week${week}_day${day}_${mealType}`;
-            
-            if (!userData[currentUser][key]) {
-                userData[currentUser][key] = { completed: false, substitute: '' };
-            }
-            
-            userData[currentUser][key].substitute = e.target.value;
-            
-            // 디바운스로 서버 저장
-            clearTimeout(window.substituteTimeout);
-            window.substituteTimeout = setTimeout(async () => {
-                await saveToServer(
-                    currentUser, 
-                    week, 
-                    day, 
-                    mealType, 
-                    userData[currentUser][key].completed,
-                    userData[currentUser][key].substitute
-                );
-            }, 2000);
-        }
-
-        function updateDayProgress(dayCard) {
-            const meals = dayCard.querySelectorAll('.meal');
-            const completedMeals = dayCard.querySelectorAll('.meal.completed');
-            const progress = (completedMeals.length / meals.length) * 100;
+        console.log('스크립트 로드 완료');
+    </script>
+</body>
+</html>
