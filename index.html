@@ -749,4 +749,27 @@
             
             // 저장된 사용자 로드
             const savedUser = localStorage.getItem('currentUser');
-            if (savedUser && ['츄', '디
+            if (savedUser && ['츄', '디', '푸'].includes(savedUser)) {
+                currentUser = savedUser;
+                document.querySelectorAll('.user-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.user === currentUser);
+                });
+                console.log('저장된 사용자 로드:', currentUser);
+            }
+            
+            // 첫 번째 주차 표시
+            generateWeekSchedule(1);
+            
+            // 서버에서 데이터 로드 시도
+            loadFromServer();
+            
+            // 10초마다 동기화
+            setInterval(loadFromServer, 10000);
+            
+            showNotification('앱이 준비되었습니다!');
+            console.log('초기화 완료');
+        });
+
+    </script>
+</body>
+</html>
